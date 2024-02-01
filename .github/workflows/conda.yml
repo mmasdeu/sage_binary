@@ -1,0 +1,107 @@
+name: Publish to Anaconda
+on:
+  push: { branches: [ "main" ] }
+  pull_request: { branches: [ "main" ] }
+
+concurrency:
+  group: conda-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  conda-build:
+    runs-on: ubuntu-22.04
+    steps:
+    - uses: actions/checkout@v2
+      with:
+        submodules: recursive
+    - run: docker pull condaforge/linux-anvil-comp7
+    - name: Build sage
+      uses: flatsurf/actions/conda-forge-build@main
+      with:
+        recipe: recipe
+    - uses: conda-incubator/setup-miniconda@v2
+      with: {
+        miniforge-variant: "Mambaforge",
+        miniforge-version: "latest",
+        # Default Python version for binder:
+        # https://github.com/jupyterhub/repo2docker/blob/master/repo2docker/buildpacks/conda/environment.yml
+        python-version: "3.7.12"
+      }
+    - name: Install package like binder would
+      shell: bash -l {0}
+      run: |
+        wget -O repo2docker.yml https://github.com/jupyterhub/repo2docker/raw/main/repo2docker/buildpacks/conda/environment.yml
+        mamba install -n test --quiet -y pytest pytest-xdist
+        mamba env update -n test --quiet -f repo2docker.yml
+        conda config --set 'custom_channels.conda-build' file://${{ github.workspace }}
+        sed 's/  - sage-flatsurf=.*/  - conda-build::sage-flatsurf/' < binder/environment.yml > environment.binder.yml
+        cat environment.binder.yml
+        mamba env update -n test --quiet -f environment.binder.yml
+        conda list
+    - uses: actions/upload-artifact@v2
+      with:
+        name: conda-packages
+        path: conda-build/
+    - uses: flatsurf/actions/anaconda-upload@main
+      with:
+        user: mmasdeu
+        token: ${{ secrets.BINSTAR_TOKEN }}
+  conda-pack:
+    runs-on: "${{ matrix.on }}"
+    strategy:
+      matrix:
+        on: [ubuntu-22.04, macos-11]
+    steps:
+      - name: Maximize build space
+        uses: easimon/maximize-build-space@master
+        if: ${{ matrix.on == 'ubuntu-22.04' }}
+      - uses: actions/checkout@v2
+        with: { submodules: recursive }
+      - uses: conda-incubator/setup-miniconda@v2
+        with: { miniforge-variant: "Mambaforge", miniforge-version: "latest", python-version: "${{ matrix.python }}" }
+      - name: Install sage_binary stack
+        shell: bash -l {0}
+        run: |
+          mamba env create -n sage_binary -f sage_binary.yml
+          # Add mamba so users can install optional packages later.
+          mamba install -n sage_binary -y mamba
+      - name: Install conda-pack
+        shell: bash -l {0}
+        run: |
+          mamba install -y conda-pack makeself
+      - name: Install sage-flatsurf
+        shell: bash -l {0}
+        run: |
+          conda activate sage_binary
+          pip install --verbose --no-index .
+      - name: Freeze environment
+        shell: bash -l {0}
+        run: |
+          mamba env export -n sage_binary -f conda-pack.yml --override-channels -c conda-forge
+      - name: Maximize build space
+        shell: bash -l {0}
+        run: |
+          /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
+          sudo gem uninstall -aIx
+          sudo rm -rf /usr/local/miniconda
+          sudo rm -rf /usr/local/lib/node_modules
+          mamba env remove -n sage_binary --yes
+        if: ${{ matrix.on == 'macos-11' }}
+      - name: Create installer
+        shell: bash -l {0}
+        run: |
+          mamba create -n sage_binary mamba pip --yes
+          conda activate sage_binary
+          pip install --no-deps .
+          conda deactivate
+          conda pack -n sage_binary --n-threads 2
+          mv conda-pack.yml pack/
+          tar -zxf sage_binary.tar.gz -C pack
+          find pack/lib -name '*.dylib' -type f -exec strip -S \{\} \; # macOS
+          find pack/lib -name '*.so' -type f -exec strip --strip-unneeded \{\} \; # Linux
+          mkdir tmp
+          TMPDIR=$PWD/tmp/ makeself --complevel 6 --target ./sage_binary-0.0.1 pack/ sage_binary.install sage_binary ./unpack.sh
+
+env:
+  MAKEFLAGS: -j2
+  SAGE_NUM_THREADS: 2
