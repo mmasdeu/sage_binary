@@ -1,0 +1,28 @@
+# This file lists the dependencies needed to build and test all of the package.
+# Create a conda environment with these dependencies preinstalled with:
+# conda env create -f environment.yml
+name: sage_binary-dev
+channels:
+  - conda-forge
+dependencies:
+  - black>=23,<24
+  - docutils
+  - furo
+  - alabaster
+  - isort
+  - ipywidgets
+  - jupyter-sphinx
+  - jupytext
+  - matplotlib-base
+  - myst-parser
+  - myst-nb
+  - pip
+  - pygments
+  - pylint>=3,<3.1
+  - python
+  - rever
+  - sagelib
+  - sphinx
+  - twine
+  - wheel
+
