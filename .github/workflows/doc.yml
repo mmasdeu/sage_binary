@@ -38,4 +38,3 @@ jobs:
           FOLDER: doc/_build/html
           TARGET_FOLDER: docs
         if: ${{ github.event_name == 'push' }}
-
