@@ -18,7 +18,6 @@ dependencies:
   - pyflatsurf>=3.13.3,<4
   - python=3.9
   - ruamel.yaml
-  - sage_binary
   - sagemath-db-conway-polynomials
   - sagelib=9.7
   - scipy
