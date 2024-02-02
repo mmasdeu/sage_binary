@@ -1,0 +1,27 @@
+# This environment file describes the entire sage_binary stack with all optional
+# dependencies.
+# Create an environment with these packages installed with
+# mamba env create -f sage_binary.yml
+# See the sage-flaturf installation instructions for more details.
+name: sage_binary
+channels:
+  - conda-forge
+dependencies:
+  - gap-defaults
+  - ipywidgets
+  - notebook>=7,<8
+  - maxima
+  - matplotlib-base
+  - pip
+  - pyeantic>=1.2.1,<2
+  - pyexactreal>=3.1.0,<4
+  - pyflatsurf>=3.13.3,<4
+  - python=3.9
+  - ruamel.yaml
+  - sage_binary
+  - sagemath-db-conway-polynomials
+  - sagelib=9.7
+  - scipy
+  - pip:
+    - jupyter_ui_poll >=0.2.1,<0.3
+    - flipper
