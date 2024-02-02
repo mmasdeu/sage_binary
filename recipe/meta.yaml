@@ -1,0 +1,36 @@
+{% set version = "0.5.2" %}
+{% set build_number = '0' %}
+
+package:
+  name: sage_binary
+  version: {{ version }}
+
+source:
+  path: ../
+
+build:
+  number: {{ build_number }}
+  noarch: python
+  script: {{ PYTHON }} -m pip install . -vv
+
+requirements:
+  host:
+    - python >=3.6
+    - pip
+  run:
+    - python >=3.6
+    - sagelib
+
+test:
+  imports:
+    - sage_binary
+
+about:
+  home: http://github.com/mmasdeu/sage_binary
+  license: GPL-2.0-or-later
+  license_file: COPYING
+  summary: Binary files for SageMath
+  description: |
+    Binaries for SageMath, to make it easier to use in Linux and MacOS.
+  doc_url: https://mmasdeu.github.io/sage_binary/
+  dev_url: https://github.com/mmasdeu/sage_binary
