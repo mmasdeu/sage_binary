@@ -34,7 +34,7 @@ jobs:
         mamba install -n test --quiet -y pytest pytest-xdist
         mamba env update -n test --quiet -f repo2docker.yml
         conda config --set 'custom_channels.conda-build' file://${{ github.workspace }}
-        sed 's/  - sage-flatsurf=.*/  - conda-build::sage-flatsurf/' < binder/environment.yml > environment.binder.yml
+        sed 's/  - sage_binary=.*/  - conda-build::sage_binary/' < sage_binary.yml > environment.binder.yml
         cat environment.binder.yml
         mamba env update -n test --quiet -f environment.binder.yml
         conda list
