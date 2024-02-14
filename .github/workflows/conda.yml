@@ -69,11 +69,6 @@ jobs:
         shell: bash -l {0}
         run: |
           mamba install -y conda-pack makeself
-      - name: Install sage-flatsurf
-        shell: bash -l {0}
-        run: |
-          conda activate sage_binary
-          pip install --verbose --no-index .
       - name: Freeze environment
         shell: bash -l {0}
         run: |
@@ -91,9 +86,6 @@ jobs:
         shell: bash -l {0}
         run: |
           mamba create -n sage_binary mamba pip --yes
-          conda activate sage_binary
-          pip install --no-deps .
-          conda deactivate
           conda pack -n sage_binary --n-threads 2
           mv conda-pack.yml pack/
           tar -zxf sage_binary.tar.gz -C pack
