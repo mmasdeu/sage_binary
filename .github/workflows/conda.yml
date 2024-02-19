@@ -93,7 +93,10 @@ jobs:
           find pack/lib -name '*.so' -type f -exec strip --strip-unneeded \{\} \; # Linux
           mkdir tmp
           TMPDIR=$PWD/tmp/ makeself --complevel 6 --target ./sage_binary-0.0.1 pack/ sage_binary.install sage_binary ./unpack.sh
-
+      - name: Release
+        uses: softprops/action-gh-release@v1
+        with:
+          files: $PWD/tmp/sage_binary-0.0.1 sage_binary.install unpack.sh
 env:
   MAKEFLAGS: -j2
   SAGE_NUM_THREADS: 2
