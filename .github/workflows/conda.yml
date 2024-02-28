@@ -25,7 +25,7 @@ jobs:
           miniforge-version: "latest"
           python-version: "3.7.12"
     - name: Install package like binder would
-      shell: bash
+      shell: bash -l {0}
       run: |
         wget -O repo2docker.yml https://github.com/jupyterhub/repo2docker/raw/main/repo2docker/buildpacks/conda/environment.yml
         mamba install -n test --quiet -y pytest pytest-xdist
@@ -47,7 +47,7 @@ jobs:
     runs-on: "${{ matrix.on }}"
     strategy:
       matrix:
-        on: [ ubuntu-22.04, ]
+        on: [ ubuntu-22.04, macos-11]
     steps:
       - name: Maximize build space
         uses: easimon/maximize-build-space@master
@@ -57,21 +57,21 @@ jobs:
       - uses: conda-incubator/setup-miniconda@v2
         with: { miniforge-variant: "Mambaforge", miniforge-version: "latest", python-version: "${{ matrix.python }}" }
       - name: Install sage_binary stack
-        shell: bash
+        shell: bash -l {0}
         run: |
           mamba env create -n sage_binary -f sage_binary.yml
           # Add mamba so users can install optional packages later.
           mamba install -n sage_binary -y mamba
       - name: Install conda-pack
-        shell: bash
+        shell: bash -l {0}
         run: |
           mamba install -y conda-pack makeself
       - name: Freeze environment
-        shell: bash
+        shell: bash -l {0}
         run: |
           mamba env export -n sage_binary -f conda-pack.yml --override-channels -c conda-forge
       - name: Maximize build space
-        shell: bash
+        shell: bash -l {0}
         run: |
           /bin/bash -c "$(curl -fsSL https://raw.githubusercontent.com/Homebrew/install/master/uninstall.sh)"
           sudo gem uninstall -aIx
@@ -80,7 +80,7 @@ jobs:
           mamba env remove -n sage_binary --yes
         if: ${{ matrix.on == 'macos-11' }}
       - name: Create installer
-        shell: bash
+        shell: bash -l {0}
         run: |
           mamba create -n sage_binary mamba pip --yes
           conda pack -n sage_binary --n-threads 2
